@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.servlet.http.HttpSession;
-import javax.swing.text.html.HTML;
 
 @Controller
 @RequestMapping(value = "/user/")
@@ -89,4 +88,24 @@ public class UserController {
     public ServerResponse<String> forgetGetQuestion(String username){
         return iUserService.selectQuestion(username);
     }
+
+    /**
+     * 找回密码
+     * @param username
+     * @param question
+     * @param answer
+     * @return
+     */
+    @RequestMapping(value = "forgetcheckanswer.do",method = RequestMethod.GET)
+    @ResponseBody
+    public ServerResponse<String> forgetCheckAnswer(String username, String question, String answer){
+        return iUserService.checkAnswer(username,question,answer);
+    }
+
+    @RequestMapping(value = "forgetresetpassword.do",method = RequestMethod.GET)
+    @ResponseBody
+    public ServerResponse<String> forgetResetPassword(String username,String passwordNew,String forgettoken){
+        return iUserService.forgetResetPassword(username,passwordNew,forgettoken);
+    }
+
 }
