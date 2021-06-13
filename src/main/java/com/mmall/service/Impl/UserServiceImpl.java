@@ -147,4 +147,62 @@ public class UserServiceImpl implements IUserService {
         }
         return ServerResponse.creatBySuccess("修改密码失败");
     }
+
+    public ServerResponse<String> resetPassword(String passwordOld,String passwordNew,User user){
+        //防止横向越权，要校验一下这个用户的旧密码，一定要指定是这个用户
+        int resultCount=userMapper.checkPassword(MD5Util.MD5EncodeUtf8(passwordOld),user.getId());
+        if (resultCount==0){
+            return ServerResponse.creatByErrorMessage("旧密码错误");
+        }
+        user.setPassword(MD5Util.MD5EncodeUtf8(passwordNew));
+        int updateCount=userMapper.updateByPrimaryKey(user);
+        if (updateCount>0){
+            return ServerResponse.creatBySuccess("密码更新成功");
+        }
+        return ServerResponse.creatByErrorMessage("密码更新失败");
+    }
+
+    public ServerResponse<User> updateInfomation(User user){
+        //username是不能更新的
+        //email也要进行校验，校验新的email是否已经存在，并且存在的emai如果相同的化，不能是当前用户的.
+        int resultCount=userMapper.checkEmailByUserId(user.getEmail(),user.getId());
+        if (resultCount>0){
+            return ServerResponse.creatByErrorMessage("Email已经存在");
+        }
+        User updateUser=new User();
+        updateUser.setId(user.getId());
+        updateUser.setEmail(user.getEmail());
+        updateUser.setPhone(user.getPhone());
+        updateUser.setQuestion(user.getQuestion());
+        updateUser.setAnswer(user.getAnswer());
+        int updateCount=userMapper.updateByPrimaryKey(updateUser);
+        if (updateCount>0){
+            return ServerResponse.creatBySuccess("更新个人信息成功",updateUser);
+        }
+        return ServerResponse.creatByErrorMessage("更新个人信息失败");
+    }
+
+    public ServerResponse<User> getInfomation(Integer userId){
+        User user=userMapper.selectByPrimaryKey(userId);
+        if (user==null){
+            return ServerResponse.creatByErrorMessage("找不到当前用户");
+        }
+        user.setPassword(StringUtils.EMPTY);
+        return ServerResponse.creatBySuccess(user);
+    }
+
+    /**
+     * backend
+     */
+    /**
+     * 校验是否是管理员
+     * @param user
+     * @return
+     */
+    public ServerResponse checkAdminRole(User user){
+        if (user!=null && user.getRole()==Const.Role.ROLE_ADMIN){
+            return ServerResponse.creatBySuccess();
+        }
+        return ServerResponse.creatByError();
+    }
 }
